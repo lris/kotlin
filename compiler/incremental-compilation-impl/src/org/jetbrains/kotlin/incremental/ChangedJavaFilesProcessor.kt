@@ -16,14 +16,14 @@
 
 package org.jetbrains.kotlin.incremental
 
-import org.jetbrains.kotlin.cli.jvm.compiler.EnvironmentConfigFiles
-import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
 import com.intellij.lang.java.JavaLanguage
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiFileFactory
 import com.intellij.psi.PsiJavaFile
+import org.jetbrains.kotlin.cli.jvm.compiler.EnvironmentConfigFiles
+import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import java.io.File
 import java.util.*
@@ -40,7 +40,7 @@ internal class ChangedJavaFilesProcessor(private val reporter: ICReporter) {
     }
 
     val allChangedSymbols: Collection<LookupSymbol>
-            get() = allSymbols
+        get() = allSymbols
 
     fun process(filesDiff: ChangedFiles.Known): ChangesEither {
         val modifiedJava = filesDiff.modified.filter(File::isJavaFile)
