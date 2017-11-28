@@ -506,10 +506,15 @@ private val INDENT_RULES = arrayOf<NodeIndentStrategy>(
                 .within(KtNodeTypes.PARENTHESIZED)
                 .set(Indent.getContinuationWithoutFirstIndent(false)),
 
-        strategy("Round Brackets around conditions")
-                .forType(LPAR, RPAR)
+        strategy("Opening parenthesis for conditions")
+                .forType(LPAR)
                 .within(KtNodeTypes.IF, KtNodeTypes.WHEN_ENTRY, KtNodeTypes.WHILE, KtNodeTypes.DO_WHILE)
                 .set(Indent.getContinuationWithoutFirstIndent(true)),
+
+        strategy("Closing parenthesis for conditions")
+                .forType(RPAR)
+                .within(KtNodeTypes.IF, KtNodeTypes.WHEN_ENTRY, KtNodeTypes.WHILE, KtNodeTypes.DO_WHILE)
+                .set(Indent.getNoneIndent()),
 
         strategy("KDoc comment indent")
                 .within(KDOC_CONTENT)
