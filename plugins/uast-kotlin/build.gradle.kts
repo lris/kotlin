@@ -2,9 +2,7 @@
 apply { plugin("kotlin") }
 
 configureIntellijPlugin {
-    setPlugins("junit", "gradle", "Groovy", "android",
-               "maven", // TODO: check whether it works in AS (it was marked optional before
-               "properties")
+    setPlugins("junit", "gradle", "Groovy", "properties")
 }
 
 dependencies {
