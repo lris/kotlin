@@ -57,14 +57,14 @@ abstract class KotlinCommonBlock(
         private val settings: CodeStyleSettings,
         private val spacingBuilder: KotlinSpacingBuilder,
         private val alignmentStrategy: CommonAlignmentStrategy) {
-    private @Volatile var mySubBlocks: List<Block>? = null
+    private @Volatile var mySubBlocks: List<ASTBlock>? = null
 
     abstract protected fun createBlock(node: ASTNode,
                                        alignmentStrategy: CommonAlignmentStrategy,
                                        indent: Indent?,
                                        wrap: Wrap?,
                                        settings: CodeStyleSettings,
-                                       spacingBuilder: KotlinSpacingBuilder): Block
+                                       spacingBuilder: KotlinSpacingBuilder): ASTBlock
 
     abstract protected fun createSyntheticSpacingNodeBlock(node: ASTNode): ASTBlock
 
@@ -103,7 +103,7 @@ abstract class KotlinCommonBlock(
                 else
                     Indent.getNormalIndent()
                 val operationSyntheticBlock = SyntheticKotlinBlock(
-                        (operationBlock as ASTBlock).node,
+                        operationBlock.node,
                         nodeSubBlocks.subList(operationBlockIndex, nodeSubBlocks.size),
                         null, indent, null, spacingBuilder) { createSyntheticSpacingNodeBlock(it) }
 
@@ -171,7 +171,7 @@ abstract class KotlinCommonBlock(
 
         if (type == KtNodeTypes.IF) {
             val elseBlock = mySubBlocks?.getOrNull(newChildIndex)
-            if (elseBlock is ASTBlock && elseBlock.node.elementType == KtTokens.ELSE_KEYWORD) {
+            if (elseBlock != null && elseBlock.node.elementType == KtTokens.ELSE_KEYWORD) {
                 return ChildAttributes.DELEGATE_TO_NEXT_CHILD
             }
         }
@@ -277,7 +277,7 @@ abstract class KotlinCommonBlock(
     }
 
 
-    private fun buildSubBlock(child: ASTNode, alignmentStrategy: CommonAlignmentStrategy, wrappingStrategy: WrappingStrategy): Block {
+    private fun buildSubBlock(child: ASTNode, alignmentStrategy: CommonAlignmentStrategy, wrappingStrategy: WrappingStrategy): ASTBlock {
         val childWrap = wrappingStrategy.getWrap(child)
 
         // Skip one sub-level for operators, so type of block node is an element type of operator
@@ -297,14 +297,14 @@ abstract class KotlinCommonBlock(
         return createBlock(child, alignmentStrategy, createChildIndent(child), childWrap, settings, spacingBuilder)
     }
 
-    private fun buildSubBlocks(): List<Block> {
+    private fun buildSubBlocks(): List<ASTBlock> {
         val childrenAlignmentStrategy = getChildrenAlignmentStrategy()
         val wrappingStrategy = getWrappingStrategy()
 
         return node.children()
                 .filter { it.textRange.length > 0 && it.elementType != TokenType.WHITE_SPACE }
                 .map { buildSubBlock(it, childrenAlignmentStrategy, wrappingStrategy ) }
-                .toMutableList()
+                .toList()
     }
 
     private fun getWrappingStrategy(): WrappingStrategy {
@@ -604,11 +604,6 @@ private fun getWrappingStrategyForItemList(wrapType: Int, itemTypes: TokenSet, w
     }
 }
 
-private fun findNodeBlockIndex(blocks: List<Block>, tokenSet: TokenSet): Int {
-    return blocks.indexOfFirst { block ->
-        if (block !is ASTBlock) return@indexOfFirst false
-
-        val node = block.node
-        node != null && node.elementType in tokenSet
-    }
+private fun findNodeBlockIndex(blocks: List<ASTBlock>, tokenSet: TokenSet): Int {
+    return blocks.indexOfFirst { block -> block.node?.elementType in tokenSet }
 }
