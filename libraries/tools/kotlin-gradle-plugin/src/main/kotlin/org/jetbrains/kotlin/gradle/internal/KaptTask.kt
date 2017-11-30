@@ -55,6 +55,12 @@ open class KaptTask : ConventionTask(), CompilerArgumentAware<K2JVMCompilerArgum
     val classpath: FileCollection
         get() = kotlinCompileTask.classpath
 
+    /** Explicit opt-in switch for Kapt caching. Should be used when annotation processors used by this task are
+     * certain NOT to use anything aside from the task inputs in their logic and are guaranteed to produce the same
+     * output on subsequent runs without input changes. */
+    @get:Internal
+    var useBuildCache: Boolean = false
+
     @get:Classpath @get:InputFiles @Suppress("unused")
     internal val kotlinTaskPluginClasspaths get() = kotlinCompileTask.pluginClasspath
 
