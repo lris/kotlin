@@ -8,6 +8,8 @@ configureIntellijPlugin {
 }
 
 val robolectricClasspath by configurations.creating
+val androidSdk by configurations.creating
+val androidJar by configurations.creating
 
 dependencies {
     testCompile(project(":compiler:util"))
@@ -34,6 +36,8 @@ dependencies {
     testRuntime(projectTests(":compiler:tests-common-jvm6"))
     testRuntime(project(":custom-dependencies:android-sdk", configuration = "dxJar"))
     robolectricClasspath(commonDep("org.robolectric", "robolectric"))
+    androidSdk(project(":custom-dependencies:android-sdk", configuration = "androidSdk"))
+    androidJar(project(":custom-dependencies:android-sdk", configuration = "androidJar"))
 }
 
 afterEvaluate {
@@ -59,13 +63,15 @@ evaluationDependsOn(":kotlin-android-extensions-runtime")
 projectTest {
     environment("ANDROID_EXTENSIONS_RUNTIME_CLASSES", getSourceSetsFrom(":kotlin-android-extensions-runtime")["main"].output.classesDirs.asPath)
     dependsOnTaskIfExistsRec("dist", project = rootProject)
+    dependsOn(androidSdk)
+    dependsOn(androidJar)
     workingDir = rootDir
-    afterEvaluate {
+    doFirst {
         val androidPluginPath = project.the<IntelliJPluginExtension>().pluginDependencies.find { it.id == "android" }?.jarFiles?.first()?.parentFile?.canonicalPath
                                 ?: throw GradleException("idea android plugin is not configured")
         systemProperty("ideaSdk.androidPlugin.path", androidPluginPath)
         systemProperty("robolectric.classpath", robolectricClasspath.asPath)
+        systemProperty("android.sdk", androidSdk.singleFile.canonicalPath)
+        systemProperty("android.jar", androidJar.singleFile.canonicalPath)
     }
-    systemProperty("android.jar", androidJarPath())
-    systemProperty("android.sdk", androidSdkPath())
 }

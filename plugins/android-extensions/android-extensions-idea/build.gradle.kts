@@ -8,6 +8,8 @@ configureIntellijPlugin {
                "java-decompiler", "java-i18n", "junit", "maven", "properties", "testng")
 }
 
+val androidSdk by configurations.creating
+
 dependencies {
     compile(project(":compiler:util"))
     compile(project(":compiler:light-classes"))
@@ -30,6 +32,7 @@ dependencies {
     testRuntime(project(":noarg-ide-plugin"))
     testRuntime(project(":allopen-ide-plugin"))
     testRuntime(project(":plugins:lint"))
+    androidSdk(project(":custom-dependencies:android-sdk", configuration = "androidSdk"))
 }
 
 afterEvaluate {
@@ -55,8 +58,11 @@ testsJar {}
 
 projectTest {
     dependsOn(":kotlin-android-extensions-runtime:dist")
+    dependsOn(androidSdk)
     workingDir = rootDir
-    systemProperty("android.sdk", androidSdkPath())
+    doFirst {
+        systemProperty("android.sdk", androidSdk.singleFile.canonicalPath)
+    }
 }
 
 runtimeJar()

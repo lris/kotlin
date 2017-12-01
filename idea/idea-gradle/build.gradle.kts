@@ -4,6 +4,8 @@ configureIntellijPlugin {
     setPlugins("android", "coverage", "gradle", "Groovy", "junit", "maven", "properties", "testng")
 }
 
+val androidSdk by configurations.creating
+
 dependencies {
 
     compileOnly(project(":idea"))
@@ -27,6 +29,7 @@ dependencies {
     testRuntime(project(":sam-with-receiver-ide-plugin"))
     testRuntime(project(":allopen-ide-plugin"))
     testRuntime(project(":noarg-ide-plugin"))
+    androidSdk(project(":custom-dependencies:android-sdk", configuration = "androidSdk"))
 }
 
 afterEvaluate {
@@ -61,7 +64,10 @@ testsJar()
 
 projectTest {
     workingDir = rootDir
-    systemProperty("android.sdk", androidSdkPath())
+    dependsOn(androidSdk)
+    doFirst {
+        systemProperty("android.sdk", androidSdk.singleFile.canonicalPath)
+    }
 }
 
 configureInstrumentation()
