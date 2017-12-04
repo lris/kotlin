@@ -89,38 +89,165 @@ open class A {
     }
 
     @Test
-    fun testModifyJavaInLib() {
+    fun testModifySignatureJavaInLibDefaultPreciseJavaTrackingMode() {
+        doTestSignatureChangeInJavaClass(
+                usePreciseJavaTracking = null,
+                expectedAffectedSources = listOf("JavaClassChild.kt", "useJavaClass.kt", "useJavaClassFooMethodUsage.kt"),
+                changeTrackedJavaClass = false
+        )
+    }
+
+    @Test
+    fun testModifySignatureJavaInLibDisabledPreciseJavaTrackingMode() {
+        doTestSignatureChangeInJavaClass(
+                usePreciseJavaTracking = false,
+                expectedAffectedSources = listOf("JavaClassChild.kt", "useJavaClass.kt", "useJavaClassFooMethodUsage.kt"),
+                changeTrackedJavaClass = false
+        )
+    }
+
+    @Test
+    fun testModifySignatureJavaInLibEnabledPreciseJavaTrackingMode() {
+        doTestSignatureChangeInJavaClass(
+                usePreciseJavaTracking = true,
+                expectedAffectedSources = listOf("JavaClassChild.kt", "useJavaClass.kt", "useJavaClassFooMethodUsage.kt"),
+                changeTrackedJavaClass = false
+        )
+    }
+
+    @Test
+    fun testModifyBodyJavaInLibDefaultPreciseJavaTrackingMode() {
+        doTestBodyChangeInJavaClass(
+                usePreciseJavaTracking = null,
+                expectedAffectedSources = listOf("JavaClassChild.kt", "useJavaClass.kt", "useJavaClassFooMethodUsage.kt"),
+                changeTrackedJavaClass = false
+        )
+    }
+
+    @Test
+    fun testModifyBodyJavaInLibDisabledPreciseJavaTracking() {
+        doTestBodyChangeInJavaClass(
+                usePreciseJavaTracking = false,
+                expectedAffectedSources = listOf("JavaClassChild.kt", "useJavaClass.kt", "useJavaClassFooMethodUsage.kt"),
+                changeTrackedJavaClass = false
+        )
+    }
+
+    @Test
+    fun testModifyBodyJavaInLibEnabledPreciseJavaTracking() {
+        doTestBodyChangeInJavaClass(
+                usePreciseJavaTracking = true,
+                expectedAffectedSources = listOf("JavaClassChild.kt", "useJavaClass.kt", "useJavaClassFooMethodUsage.kt"),
+                changeTrackedJavaClass = false
+        )
+    }
+
+    @Test
+    fun testModifySignatureTrackedJavaInLibDefaultPreciseJavaTrackingMode() {
+        doTestSignatureChangeInJavaClass(
+                usePreciseJavaTracking = null,
+                expectedAffectedSources = listOf(
+                        "TrackedJavaClassChild.kt", "useTrackedJavaClass.kt", "useTrackedJavaClassFooMethodUsage.kt",
+                        "useTrackedJavaClassSameModule.kt"
+                ),
+                changeTrackedJavaClass = true
+        )
+    }
+
+    @Test
+    fun testModifySignatureTrackedJavaInLibDisabledPreciseJavaTrackingMode() {
+        doTestSignatureChangeInJavaClass(
+                usePreciseJavaTracking = false,
+                expectedAffectedSources = listOf(
+                        "TrackedJavaClassChild.kt", "useTrackedJavaClass.kt", "useTrackedJavaClassFooMethodUsage.kt",
+                        "useTrackedJavaClassSameModule.kt"
+                ),
+                changeTrackedJavaClass = true
+        )
+    }
+
+    @Test
+    fun testModifySignatureTrackedJavaInLibEnabledPreciseJavaTrackingMode() {
+        doTestSignatureChangeInJavaClass(
+                usePreciseJavaTracking = true,
+                expectedAffectedSources = listOf("TrackedJavaClassChild.kt", "useTrackedJavaClass.kt"),
+                changeTrackedJavaClass = true
+        )
+    }
+
+    @Test
+    fun testModifyBodyTrackedJavaInLibDefaultPreciseJavaTrackingMode() {
+        doTestBodyChangeInJavaClass(
+                usePreciseJavaTracking = null,
+                expectedAffectedSources = listOf(
+                        "TrackedJavaClassChild.kt", "useTrackedJavaClass.kt", "useTrackedJavaClassFooMethodUsage.kt",
+                        "useTrackedJavaClassSameModule.kt"
+                ),
+                changeTrackedJavaClass = true
+        )
+    }
+
+    @Test
+    fun testModifyBodyTrackedJavaInLibDisabledPreciseJavaTracking() {
+        doTestBodyChangeInJavaClass(
+                usePreciseJavaTracking = false,
+                expectedAffectedSources = listOf(
+                        "TrackedJavaClassChild.kt", "useTrackedJavaClass.kt", "useTrackedJavaClassFooMethodUsage.kt",
+                        "useTrackedJavaClassSameModule.kt"
+                ),
+                changeTrackedJavaClass = true
+        )
+    }
+
+    @Test
+    fun testModifyBodyTrackedJavaInLibEnabledPreciseJavaTracking() {
+        doTestBodyChangeInJavaClass(
+                usePreciseJavaTracking = true,
+                expectedAffectedSources = listOf(),
+                changeTrackedJavaClass = true
+        )
+    }
+
+    private fun doTestSignatureChangeInJavaClass(
+            usePreciseJavaTracking: Boolean?,
+            expectedAffectedSources: Collection<String>,
+            changeTrackedJavaClass: Boolean
+    ) {
         val project = Project("incrementalMultiproject", GRADLE_VERSION)
-        project.build("build") {
+        val options = defaultBuildOptions().copy(usePreciseJavaTracking = usePreciseJavaTracking)
+        project.build("build", options = options) {
             assertSuccessful()
         }
 
-        val javaClassJava = project.projectDir.getFileByName("JavaClass.java")
+        val javaClassJava = project.projectDir.getFileByName(if (changeTrackedJavaClass) "TrackedJavaClass.java" else "JavaClass.java")
         javaClassJava.modify { it.replace("String getString", "Object getString") }
 
-        project.build("build") {
+        project.build("build", options = options) {
             assertSuccessful()
-            val affectedSources = project.projectDir.getFilesByNames("JavaClassChild.kt", "useJavaClass.kt", "useJavaClassFooMethodUsage.kt")
+            val affectedSources = project.projectDir.getFilesByNames(*expectedAffectedSources.toTypedArray())
             val relativePaths = project.relativize(affectedSources)
             assertCompiledKotlinSources(relativePaths, weakTesting = false)
         }
     }
 
-    @Test
-    fun testModifyTrackedJavaClassInLib() {
+    private fun doTestBodyChangeInJavaClass(
+            usePreciseJavaTracking: Boolean?,
+            expectedAffectedSources: Collection<String>,
+            changeTrackedJavaClass: Boolean
+    ) {
         val project = Project("incrementalMultiproject", GRADLE_VERSION)
-        project.build("build") {
+
+        val options = defaultBuildOptions().copy(usePreciseJavaTracking = usePreciseJavaTracking)
+        project.build("build", options = options) {
             assertSuccessful()
         }
 
-        val javaClassJava = project.projectDir.getFileByName("TrackedJavaClass.java")
-        javaClassJava.modify { it.replace("String getString", "Object getString") }
+        val javaClassJava = project.projectDir.getFileByName(if (changeTrackedJavaClass) "TrackedJavaClass.java" else "JavaClass.java")
+        javaClassJava.modify { it.replace("Hello, World!", "Hello, World!!!!") }
 
-        project.build("build") {
+        project.build("build", options = options) {
             assertSuccessful()
-            val affectedSources = project.projectDir.getFilesByNames(
-                    "TrackedJavaClassChild.kt", "useTrackedJavaClass.kt", "useTrackedJavaClassSameModule.kt"
-            )
+            val affectedSources = project.projectDir.getFilesByNames(*expectedAffectedSources.toTypedArray())
             val relativePaths = project.relativize(affectedSources)
             assertCompiledKotlinSources(relativePaths, weakTesting = false)
         }
