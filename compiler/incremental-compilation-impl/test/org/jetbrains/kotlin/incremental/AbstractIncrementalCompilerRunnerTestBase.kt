@@ -115,7 +115,7 @@ abstract class AbstractIncrementalCompilerRunnerTestBase<Args : CommonCompilerAr
         sb.appendLine("End of files")
         sb.appendLine("Exit code: ${if (errors.isEmpty()) "OK" else "ABORT"}")
 
-        if (includeErrors) {
+        if (errors.isNotEmpty() && includeErrors) {
             sb.appendLine("------------------------------------------")
             sb.appendLine("COMPILATION FAILED")
             errors.filter(String::isNotEmpty).forEach { sb.appendLine(it) }
