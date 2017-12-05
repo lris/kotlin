@@ -37,8 +37,6 @@ import org.jetbrains.kotlin.modules.TargetId
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.resolve.jvm.JvmClassName
 import java.io.File
-import java.util.*
-import kotlin.collections.HashSet
 
 fun makeIncrementally(
         cachesDir: File,
@@ -176,15 +174,25 @@ class IncrementalJvmCompilerRunner(
             is ChangesEither.Unknown -> return CompilationMode.Rebuild { "Could not get changes for java files" }
         }
 
-        if ((changedFiles.modified + changedFiles.removed).any { it.extension.toLowerCase() == "xml" }) {
-            return CompilationMode.Rebuild { "XML resource files were changed" }
-        }
+        val androidLayoutChanges = processLookupSymbolsForAndroidLayouts(changedFiles)
 
+        markDirtyBy(androidLayoutChanges)
         markDirtyBy(affectedJavaSymbols)
         markDirtyBy(classpathChanges.lookupSymbols)
         markDirtyBy(classpathChanges.fqNames)
 
         return CompilationMode.Incremental(dirtyFiles)
+    }
+
+    private fun processLookupSymbolsForAndroidLayouts(changedFiles: ChangedFiles.Known): Collection<LookupSymbol> {
+        val result = mutableListOf<LookupSymbol>()
+        for (file in changedFiles.modified + changedFiles.removed) {
+            if (file.extension.toLowerCase() != "xml") continue
+            val layoutName = file.name.substringBeforeLast('.')
+            result.add(LookupSymbol("<LAYOUT-CONTENT>", layoutName))
+        }
+
+        return result
     }
 
     private fun getClasspathChanges(
