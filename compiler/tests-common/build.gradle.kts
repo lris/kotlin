@@ -5,6 +5,12 @@ configureIntellijPlugin {
     setExtraDependencies("intellij-core")
 }
 
+repositories {
+    ivy {
+        artifactPattern("${rootDir.absoluteFile.toURI().toURL()}/buildSrc/prepare-deps/dx/build/[artifact](-[classifier]).jar")
+    }
+}
+
 dependencies {
     testCompile(project(":core:descriptors"))
     testCompile(project(":core:descriptors.jvm"))
@@ -27,7 +33,7 @@ dependencies {
     testCompile(project(":kotlin-test:kotlin-test-jvm"))
     testCompile(projectTests(":compiler:tests-common-jvm6"))
     testCompile(commonDep("junit:junit"))
-    testCompile(project(":custom-dependencies:android-sdk", configuration = "dxJar"))
+    testCompile("my-custom-deps:dx:0")
 }
 
 afterEvaluate {

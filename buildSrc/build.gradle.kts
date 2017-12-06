@@ -60,3 +60,5 @@ samWithReceiver {
 
 fun Project.`samWithReceiver`(configure: org.jetbrains.kotlin.samWithReceiver.gradle.SamWithReceiverExtension.() -> Unit): Unit =
         extensions.configure("samWithReceiver", configure)
+
+tasks["build"].dependsOn(":prepare-deps:dx:build")
