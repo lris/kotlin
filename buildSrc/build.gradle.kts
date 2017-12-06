@@ -31,6 +31,8 @@ plugins {
     `kotlin-dsl`
 }
 
+extra["versions.intellij"] = "172.4343.14"
+
 repositories {
     extra["buildSrcKotlinRepo"]?.let {
         maven(url = it)
