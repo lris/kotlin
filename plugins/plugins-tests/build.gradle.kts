@@ -2,6 +2,10 @@ import org.jetbrains.intellij.IntelliJPluginExtension
 
 apply { plugin("kotlin") }
 
+repositories {
+    androidDxJarRepo(project)
+}
+
 configureIntellijPlugin {
     setExtraDependencies("jps-build-test")
     setPlugins("android", "gradle", "junit")
@@ -35,7 +39,7 @@ dependencies {
     testCompile(commonDep("junit:junit"))
     testRuntime(project(":jps-plugin"))
     testRuntime(projectTests(":compiler:tests-common-jvm6"))
-    testRuntime(project(":custom-dependencies:android-sdk", configuration = "dxJar"))
+    testRuntime(androidDxJar())
     robolectricClasspath(commonDep("org.robolectric", "robolectric"))
     androidSdk(project(":custom-dependencies:android-sdk", configuration = "androidSdk"))
     androidJar(project(":custom-dependencies:android-sdk", configuration = "androidJar"))
