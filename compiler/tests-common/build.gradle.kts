@@ -1,11 +1,12 @@
 
 apply { plugin("kotlin") }
 
-configureIntellijPlugin {
-    setExtraDependencies("intellij-core")
-}
+//configureIntellijPlugin {
+//    setExtraDependencies("intellij-core")
+//}
 
 repositories {
+    intellijSdkRepo(project)
     androidDxJarRepo(project)
 }
 
@@ -31,13 +32,11 @@ dependencies {
     testCompile(project(":kotlin-test:kotlin-test-jvm"))
     testCompile(projectTests(":compiler:tests-common-jvm6"))
     testCompile(commonDep("junit:junit"))
-    testCompile(androidDxJar())
-}
-
-afterEvaluate {
-    dependencies {
-        testCompile(intellijCoreJar())
-        testCompile(intellij { include("openapi.jar", "idea.jar", "idea_rt.jar", "guava-*.jar", "trove4j.jar", "picocontainer.jar", "asm-all.jar") })
+    testCompile(androidDxJar()) { isTransitive = false }
+    testCompile(intellijCoreDep()) { includeJars("intellij-core"); isTransitive = false }
+    testCompile(intellijDep()) {
+        includeJars("openapi", "idea", "idea_rt", "guava-21.0", "trove4j", "picocontainer", "asm-all")
+        isTransitive = false
     }
 }
 
