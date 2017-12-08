@@ -3,10 +3,6 @@ apply { plugin("kotlin") }
 
 jvmTarget = "1.8"
 
-configureIntellijPlugin {
-    setExtraDependencies("intellij-core")
-}
-
 dependencies {
     compile(project(":compiler:util"))
     compile(project(":compiler:cli-common"))
@@ -24,13 +20,8 @@ dependencies {
     compile(commonDep("org.fusesource.jansi", "jansi"))
     compile(commonDep("org.jline", "jline"))
     compile(files("${System.getProperty("java.home")}/../lib/tools.jar"))
-}
-
-afterEvaluate {
-    dependencies {
-        compileOnly(intellijCoreJar())
-        compileOnly(intellijCoreJarDependencies())
-    }
+    compileOnly(intellijCoreDep()) { includeJars("intellij-core") }
+    compileOnly(intellijDep()) { includeIntellijCoreJarDependencies(project) }
 }
 
 sourceSets {

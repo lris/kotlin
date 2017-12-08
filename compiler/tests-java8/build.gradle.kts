@@ -2,20 +2,11 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 apply { plugin("kotlin") }
 
-configureIntellijPlugin {
-    setExtraDependencies("intellij-core")
-}
-
 dependencies {
     testCompile(projectTests(":compiler:tests-common"))
     testCompile(projectTests(":compiler"))
-}
-
-afterEvaluate {
-    dependencies {
-        testCompileOnly(intellijCoreJar())
-        testRuntime(intellij())
-    }
+    testCompileOnly(intellijCoreDep()) { includeJars("intellij-core") }
+    testRuntime(intellijDep())
 }
 
 sourceSets {
