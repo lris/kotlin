@@ -1,8 +1,6 @@
 
 apply { plugin("kotlin") }
 
-configureIntellijPlugin()
-
 dependencies {
     compile(project(":compiler:frontend"))
     compile(project(":compiler:frontend.script"))
@@ -12,12 +10,7 @@ dependencies {
     compile(project(":idea:idea-jps-common"))
     compile(project(":kotlin-test:kotlin-test-jvm"))
     compile(commonDep("junit:junit"))
-}
-
-afterEvaluate {
-    dependencies {
-        compileOnly(intellij { include("openapi.jar", "idea.jar", "log4j.jar") })
-    }
+    compileOnly(intellijDep()) { includeJars("openapi", "idea", "log4j") }
 }
 
 sourceSets {

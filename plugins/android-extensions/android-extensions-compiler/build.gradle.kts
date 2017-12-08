@@ -3,10 +3,6 @@ description = "Kotlin Android Extensions Compiler"
 
 apply { plugin("kotlin") }
 
-configureIntellijPlugin {
-    setExtraDependencies("intellij-core")
-}
-
 dependencies {
     compile(project(":compiler:util"))
     compile(project(":compiler:plugin-api"))
@@ -14,13 +10,8 @@ dependencies {
     compile(project(":compiler:frontend.java"))
     compile(project(":compiler:backend"))
     compileOnly(project(":kotlin-android-extensions-runtime"))
-}
-
-afterEvaluate {
-    dependencies {
-        compileOnly(intellijCoreJar())
-        compileOnly(intellij { include("asm-all.jar") })
-    }
+    compileOnly(intellijCoreDep()) { includeJars("intellij-core") }
+    compileOnly(intellijDep()) { includeJars("asm-all") }
 }
 
 sourceSets {

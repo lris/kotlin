@@ -17,17 +17,13 @@ val usedIntellijPlugins = arrayOf(
         "java-i18n",
         "java-decompiler")
 
-configureIntellijPlugin {
-    setPlugins(*usedIntellijPlugins)
-    setExtraDependencies("intellij-core")
-}
-
 dependencies {
     compile(projectDist(":kotlin-stdlib"))
     compile(project(":compiler:frontend"))
     compile(project(":compiler:frontend.java"))
     compile(project(":compiler:light-classes"))
     compile(project(":compiler:util"))
+    compileOnly(intellijCoreDep()) { includeJars("intellij-core") }
     testCompile(project(":idea"))
     testCompile(project(":idea:idea-test-framework"))
     testCompile(project(":compiler:light-classes"))
@@ -40,13 +36,9 @@ dependencies {
     testRuntime(project(":sam-with-receiver-ide-plugin"))
     testRuntime(project(":allopen-ide-plugin"))
     testRuntime(project(":noarg-ide-plugin"))
-}
-
-afterEvaluate {
-    dependencies {
-        compileOnly(intellijCoreJar())
-        testRuntime(intellij())
-        testRuntime(intellijPlugins(*usedIntellijPlugins))
+    testRuntime(intellijDep())
+    usedIntellijPlugins.forEach {
+        testRuntime(intellijPluginDep(it))
     }
 }
 

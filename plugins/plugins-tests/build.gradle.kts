@@ -1,15 +1,7 @@
-import org.jetbrains.intellij.IntelliJPluginExtension
+
+import java.io.File
 
 apply { plugin("kotlin") }
-
-repositories {
-    androidDxJarRepo(project)
-}
-
-configureIntellijPlugin {
-    setExtraDependencies("jps-build-test")
-    setPlugins("android", "gradle", "junit")
-}
 
 val robolectricClasspath by configurations.creating
 val androidSdk by configurations.creating
@@ -37,23 +29,19 @@ dependencies {
     testCompile(projectTests(":compiler:tests-common"))
     testCompile(projectTests(":jps-plugin"))
     testCompile(commonDep("junit:junit"))
+    testCompileOnly(intellijDep()) { includeJars("jps-builders", "jps-model") }
+    testCompileOnly(intellijPluginDep("android")) { includeJars("**/android-jps-plugin") }
+    testCompile(intellijDep("jps-build-test"))
     testRuntime(project(":jps-plugin"))
     testRuntime(projectTests(":compiler:tests-common-jvm6"))
     testRuntime(androidDxJar())
+    testRuntime(intellijDep())
+    testRuntime(intellijPluginDep("junit")) { includeJars("idea-junit", "resources_en") }
+    testRuntime(intellijPluginDep("gradle"))
+    testRuntime(intellijPluginDep("android"))
     robolectricClasspath(commonDep("org.robolectric", "robolectric"))
     androidSdk(project(":custom-dependencies:android-sdk", configuration = "androidSdk"))
     androidJar(project(":custom-dependencies:android-sdk", configuration = "androidJar"))
-}
-
-afterEvaluate {
-    dependencies {
-        testCompileOnly(intellij { include("jps-builders.jar", "jps-model.jar") })
-        testCompileOnly(intellijPlugin("android") { include("**/android-jps-plugin.jar") })
-        testCompile(intellijExtra("jps-build-test"))
-        testRuntime(intellij())
-        testRuntime(intellijPlugin("junit") { include("idea-junit.jar", "resources_en.jar") })
-        testRuntime(intellijPlugins("gradle", "android"))
-    }
 }
 
 sourceSets {
@@ -72,8 +60,7 @@ projectTest {
     dependsOn(androidJar)
     workingDir = rootDir
     doFirst {
-        val androidPluginPath = project.the<IntelliJPluginExtension>().pluginDependencies.find { it.id == "android" }?.jarFiles?.first()?.parentFile?.canonicalPath
-                                ?: throw GradleException("idea android plugin is not configured")
+        val androidPluginPath = File(intellijRootDir(), "plugins/android").canonicalPath
         systemProperty("ideaSdk.androidPlugin.path", androidPluginPath)
         systemProperty("robolectric.classpath", robolectricClasspath.asPath)
         systemProperty("android.sdk", androidSdk.singleFile.canonicalPath)

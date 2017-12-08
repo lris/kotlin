@@ -1,20 +1,11 @@
 
 apply { plugin("kotlin") }
 
-configureIntellijPlugin {
-    setExtraDependencies("intellij-core")
-}
-
 dependencies {
     compile(project(":compiler:util"))
     compile(project(":js:js.ast"))
     compile(commonDep("org.json", "json"))
-}
-
-afterEvaluate {
-    dependencies {
-        compileOnly(intellijCoreJar())
-    }
+    compileOnly(intellijCoreDep()) { includeJars("intellij-core") }
 }
 
 sourceSets {
