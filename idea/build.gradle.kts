@@ -1,15 +1,8 @@
 
 
 import org.gradle.jvm.tasks.Jar
-import org.jetbrains.intellij.IntelliJPluginExtension
 
 apply { plugin("kotlin") }
-
-configureIntellijPlugin {
-    setPlugins("android", "copyright", "coverage", "gradle", "Groovy", "IntelliLang",
-               "java-i18n", "junit", "maven", "properties", "testng")
-    setExtraDependencies("intellij-core")
-}
 
 dependencies {
     compile(project(":kotlin-stdlib"))
@@ -41,6 +34,16 @@ dependencies {
     compile(commonDep("org.jetbrains.kotlinx", "kotlinx-coroutines-core")) { isTransitive = false }
     compile("teamcity:markdown")
 
+    compileOnly(intellijCoreDep()) { includeJars("intellij-core") }
+    compileOnly(intellijDep()) {
+        includeJars("annotations", "openapi", "idea", "velocity", "boot", "gson-2.5", "log4j", "asm-all",
+                    "swingx-core-1.6.2", "jsr305", "forms_rt", "util", "jdom", "trove4j", "guava-21.0")
+    }
+    compileOnly(intellijPluginDep("IntelliLang"))
+    compileOnly(intellijPluginDep("copyright"))
+    compileOnly(intellijPluginDep("properties"))
+    compileOnly(intellijPluginDep("java-i18n"))
+
     testCompile(project(":kotlin-test:kotlin-test-junit"))
     testCompile(projectTests(":compiler:tests-common"))
     testCompile(project(":idea:idea-test-framework")) { isTransitive = false }
@@ -70,26 +73,25 @@ dependencies {
     (rootProject.extra["compilerModules"] as Array<String>).forEach {
         testCompile(project(it))
     }
-}
+    testCompileOnly(intellijCoreDep()) { includeJars("intellij-core") }
+    testCompile(intellijPluginDep("IntelliLang"))
+    testCompile(intellijPluginDep("copyright"))
+    testCompile(intellijPluginDep("properties"))
+    testCompile(intellijPluginDep("java-i18n"))
+    testCompileOnly(intellijDep()) { includeJars("groovy-all-2.4.6", "velocity", "gson-2.5", "jsr305", "idea_rt", "util",
+                                                 "log4j") }
+    testCompileOnly(intellijPluginDep("gradle")) { includeJars("gradle-base-services-3.5", "gradle-tooling-extension-impl", "gradle-wrapper-3.5") }
+    testCompileOnly(intellijPluginDep("Groovy")) { includeJars("Groovy") }
+    testCompileOnly(intellijPluginDep("maven")) { includeJars("maven", "maven-server-api") }
 
-afterEvaluate {
-    dependencies {
-        compileOnly(intellijCoreJar())
-        compileOnly(intellij {
-            include("annotations.jar", "openapi.jar", "idea.jar", "velocity.jar", "boot.jar", "gson-*.jar", "log4j.jar", "asm-all.jar",
-                    "swingx-core-*.jar", "jsr305.jar", "forms_rt.jar", "util.jar", "jdom.jar", "trove4j.jar", "guava-*.jar")
-        })
-        compileOnly(intellijPlugins("IntelliLang", "copyright", "properties", "java-i18n"))
-        testCompileOnly(intellijCoreJar())
-        testCompile(intellijPlugins("IntelliLang", "copyright", "properties", "java-i18n"))
-        testCompileOnly(intellij { include("groovy-all-*.jar", "velocity.jar", "gson-*.jar", "jsr305.jar", "idea_rt.jar", "util.jar",
-                                           "log4j.jar") })
-        testCompileOnly(intellijPlugin("gradle") { include("gradle-base-services-*.jar", "gradle-tooling-extension-impl.jar", "gradle-wrapper-*.jar") })
-        testCompileOnly(intellijPlugin("Groovy") { include("Groovy.jar") })
-        testCompileOnly(intellijPlugin("maven") { include("maven.jar", "maven-server-api.jar") })
-        testRuntime(intellij())
-        testRuntime(intellijPlugins("junit", "gradle", "Groovy", "coverage", "maven", "android", "testng"))
-    }
+    testRuntime(intellijDep())
+    testRuntime(intellijPluginDep("junit"))
+    testRuntime(intellijPluginDep("gradle"))
+    testRuntime(intellijPluginDep("Groovy"))
+    testRuntime(intellijPluginDep("coverage"))
+    testRuntime(intellijPluginDep("maven"))
+    testRuntime(intellijPluginDep("android"))
+    testRuntime(intellijPluginDep("testng"))
 }
 
 sourceSets {
@@ -112,7 +114,7 @@ projectTest {
     dependsOnTaskIfExistsRec("dist", project = rootProject)
     workingDir = rootDir
     afterEvaluate {
-        systemProperty("ideaSdk.path", the<IntelliJPluginExtension>().ideaDependency.classes.canonicalPath)
+        systemProperty("ideaSdk.path", intellijRootDir().canonicalPath)
     }
 }
 

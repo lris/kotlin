@@ -1,10 +1,6 @@
 
 apply { plugin("kotlin") }
 
-configureIntellijPlugin {
-    setExtraDependencies("intellij-core")
-}
-
 val antLauncherJar by configurations.creating
 
 dependencies {
@@ -13,12 +9,15 @@ dependencies {
     testCompileOnly(project(":compiler:frontend"))
     testCompileOnly(project(":compiler:cli"))
     testCompileOnly(project(":compiler:util"))
+    testCompileOnly(intellijCoreDep()) { includeJars("intellij-core") }
+    testCompileOnly(intellijDep()) { includeJars("openapi", "idea", "idea_rt", "util") }
     testCompile(project(":js:js.translator"))
     testCompile(project(":js:js.serializer"))
     testCompile(project(":js:js.dce"))
     testCompile(commonDep("junit:junit"))
     testCompile(projectTests(":kotlin-build-common"))
     testCompile(projectTests(":generators:test-generator"))
+
     testRuntime(projectDist(":kotlin-compiler"))
     testRuntime(projectDist(":kotlin-stdlib"))
     testRuntime(projectDist(":kotlin-stdlib-js"))
@@ -27,17 +26,10 @@ dependencies {
     testRuntime(projectDist(":kotlin-preloader")) // it's required for ant tests
     testRuntime(project(":compiler:backend-common"))
     testRuntime(commonDep("org.fusesource.jansi", "jansi"))
+    testRuntime(intellijDep())
 
     antLauncherJar(commonDep("org.apache.ant", "ant"))
     antLauncherJar(files(toolsJar()))
-}
-
-afterEvaluate {
-    dependencies {
-        testCompileOnly(intellijCoreJar())
-        testCompileOnly(intellij { include("openapi.jar", "idea.jar", "idea_rt.jar", "util.jar") })
-        testRuntime(intellij())
-    }
 }
 
 
