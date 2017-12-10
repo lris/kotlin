@@ -1,6 +1,8 @@
 
 apply { plugin("kotlin") }
 
+val androidSdk by configurations.creating
+
 dependencies {
     compile(project(":compiler:util"))
     compile(project(":jps-plugin"))
@@ -21,6 +23,8 @@ dependencies {
     testRuntime(intellijDep())
     testRuntime(intellijDep("jps-build-test"))
     testRuntime(intellijDep("jps-standalone"))
+
+    androidSdk(project(":custom-dependencies:android-sdk", configuration = "androidSdk"))
 }
 
 sourceSets {
@@ -30,6 +34,9 @@ sourceSets {
 
 projectTest {
     workingDir = rootDir
+    doFirst {
+        systemProperty("android.sdk", androidSdk.singleFile.canonicalPath)
+    }
 }
 
 testsJar {}

@@ -42,6 +42,7 @@ dependencies {
     testRuntime(intellijDep())
     usedIntellijPlugins.forEach {
         testRuntime(intellijPluginDep(it))
+    }
 }
 
 sourceSets {
